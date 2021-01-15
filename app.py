@@ -85,7 +85,7 @@ def model_creation():
     return jsonify({
         "classifier": "Gaussian Naive Bayes",
         "status": "Model has created successfully",
-        "score": model.score(x, y)
+        "score": model.score(x_train, y_train)
     }), 200
 
 
