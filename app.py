@@ -39,35 +39,35 @@ def model_creation():
 
     #Severity
     severity_columns = data.filter(like='Severity_').columns
+    data.loc[ data['Severity_None'] == 1 , 'severity_level'] = 0
     data.loc[ data['Severity_Mild'] == 1 , 'severity_level'] = 1
     data.loc[ data['Severity_Moderate'] == 1 , 'severity_level'] = 2
-    data.loc[ data['Severity_None'] == 1 , 'severity_level'] = 3
-    data.loc[ data['Severity_Severe'] == 1 , 'severity_level'] = 4
+    data.loc[ data['Severity_Severe'] == 1 , 'severity_level'] = 3
     data['severity_level'] = data['severity_level'].astype("int64")
     data.drop(severity_columns, axis=1, inplace=True)
 
     #Contact
     contact_columns = data.filter(like='Contact_').columns
-    data.loc[ data['Contact_Dont-Know'] == 1 , 'contact_patient'] = 1
-    data.loc[ data['Contact_Yes'] == 1 , 'contact_patient'] = 2
-    data.loc[ data['Contact_No'] == 1 , 'contact_patient'] = 3
+    data.loc[ data['Contact_No'] == 1 , 'contact_patient'] = 0
+    data.loc[ data['Contact_Yes'] == 1 , 'contact_patient'] = 1
+    data.loc[ data['Contact_Dont-Know'] == 1 , 'contact_patient'] = 2
     data['contact_patient'] = data['contact_patient'].astype("int64")
     data.drop(contact_columns, axis=1, inplace=True)
 
     #Age
     age_columns = data.filter(like='Age_').columns
-    data.loc[ data['Age_0-9'] == 1 , 'age'] = 1
-    data.loc[ data['Age_10-19'] == 1 , 'age'] = 2
-    data.loc[ data['Age_20-24'] == 1 , 'age'] = 3
-    data.loc[ data['Age_25-59'] == 1 , 'age'] = 4
-    data.loc[ data['Age_60+'] == 1 , 'age'] = 5
+    data.loc[ data['Age_0-9'] == 1 , 'age'] = 0
+    data.loc[ data['Age_10-19'] == 1 , 'age'] = 1
+    data.loc[ data['Age_20-24'] == 1 , 'age'] = 2
+    data.loc[ data['Age_25-59'] == 1 , 'age'] = 3
+    data.loc[ data['Age_60+'] == 1 , 'age'] = 4
     data['age'] = data['age'].astype("int64")
     data.drop(age_columns, axis=1, inplace=True)
 
     #Gender
     gender_columns = data.filter(like='Gender_').columns
-    data.loc[ data['Gender_Female'] == 1 , 'gender'] = 1
-    data.loc[ data['Gender_Male'] == 1 , 'gender'] = 2
+    data.loc[ data['Gender_Male'] == 1 , 'gender'] = 1
+    data.loc[ data['Gender_Female'] == 1 , 'gender'] = 2
     data.loc[ data['Gender_Transgender'] == 1 , 'gender'] = 3
     data['gender'] = data['gender'].astype("int64")
     data.drop(gender_columns, axis=1, inplace=True)
@@ -94,29 +94,40 @@ def prediction():
     if(os.path.isfile('model.pkl') == False):
         model_creation()
 
-    fever = int(request.args.get('fever'))
-    tiredness = int(request.args.get('tiredness'))
-    dry_cough = int(request.args.get('dry_cough'))
-    difficulty_in_breathing = int(request.args.get('difficulty_in_breathing'))
-    sore_throat = int(request.args.get('sore_throat'))
-    pains = int(request.args.get('pains'))
-    nasal_congestion = int(request.args.get('nasal_congestion'))
-    runny_nose = int(request.args.get('runny_nose'))
-    diarrhea = int(request.args.get('diarrhea'))
-    contact_patient = int(request.args.get('contact_patient'))
-    age = int(request.args.get('age'))
-    gender = int(request.args.get('gender'))
+    fever = 1 if request.args.get('fever') == "Yes" else 0
+    tiredness = 1 if request.args.get('tiredness') == "Yes" else 0
+    dry_cough = 1 if request.args.get('dry_cough') == "Yes" else 0
+    difficulty_in_breathing = 1 if request.args.get('difficulty_in_breathing') == "Yes" else 0
+    sore_throat = 1 if request.args.get('sore_throat') == "Yes" else 0
+    pains = 1 if request.args.get('pains') == "Yes" else 0
+    nasal_congestion = 1 if request.args.get('nasal_congestion') == "Yes" else 0
+    runny_nose = 1 if request.args.get('runny_nose') == "Yes" else 0
+    diarrhea = 1 if request.args.get('diarrhea') == "Yes" else 0
+    contact_patient = 1 if request.args.get('contact_patient') == "Yes" else 0 if request.args.get('contact_patient') == "No" else 2
+
+    if(request.args.get('age') == "0 - 9"):
+        age = 0
+    elif(request.args.get('age') == "10 - 19"):
+        age = 1
+    elif(request.args.get('age') == "20 - 24"):
+        age = 2
+    elif(request.args.get('age') == "25 - 59"):
+        age = 3
+    else:
+        age = 4
+
+    gender = 1 if request.args.get('gender') == "Male" else 2 if request.args.get('gender') == "Female" else 3
 
     args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient, age, gender])
     model = pickle.load(open("model.pkl", "rb"))
     predict = model.predict([args])
 
-    if(predict[0]==1):
+    if(predict[0]==0):
+        result = "None"
+    elif(predict[0]==1):
         result = "Mild"
     elif(predict[0]==2):
         result = "Moderate"
-    elif(predict[0]==3):
-        result = "None"
     else:
         result = "Severe"
 
