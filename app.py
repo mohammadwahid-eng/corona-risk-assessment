@@ -61,7 +61,7 @@ def model_creation():
     #Model Creation
     x = data.drop('severity_level', axis=1)
     y = data['severity_level']
-    x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.25)
+    x_train, x_test, y_train, y_test = train_test_split(x, y)
     model = GaussianNB()
     model.fit(x_train, y_train)
     pickle.dump(model, open("model.pkl", "wb"))
