@@ -109,8 +109,18 @@ def prediction():
 
     args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient, age, gender])
     model = pickle.load(open("model.pkl", "rb"))
-    result = model.predict([args])
-    return jsonify({"result": int(result[0])}), 200
+    predict = model.predict([args])
+
+    if(predict[0]==1):
+        result = "Mild"
+    elif(predict[0]==2):
+        result = "Moderate"
+    elif(predict[0]==3):
+        result = "None"
+    else:
+        result = "Severe"
+
+    return jsonify({"result": result}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
