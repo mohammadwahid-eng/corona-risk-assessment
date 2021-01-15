@@ -33,6 +33,8 @@ def model_creation():
     data.drop("None_Experiencing", axis=1, inplace=True)
     data.drop("None_Sympton", axis=1, inplace=True)
     data.drop("Country", axis=1, inplace=True)
+    data.drop(data.filter(like='Age_').columns, axis=1, inplace=True)
+    data.drop(data.filter(like='Gender_').columns, axis=1, inplace=True)
 
     #Columns name normalization
     data.rename(columns={'Fever': 'fever', 'Tiredness': 'tiredness', 'Dry-Cough': 'dry_cough', 'Difficulty-in-Breathing': 'difficulty_in_breathing', 'Sore-Throat': 'sore_throat', 'Pains': 'pains', 'Nasal-Congestion': 'nasal_congestion', 'Runny-Nose': 'runny_nose', 'Diarrhea': 'diarrhea'}, inplace=True)
@@ -53,24 +55,6 @@ def model_creation():
     data.loc[ data['Contact_Dont-Know'] == 1 , 'contact_patient'] = 2
     data['contact_patient'] = data['contact_patient'].astype("int64")
     data.drop(contact_columns, axis=1, inplace=True)
-
-    #Age
-    age_columns = data.filter(like='Age_').columns
-    data.loc[ data['Age_0-9'] == 1 , 'age'] = 0
-    data.loc[ data['Age_10-19'] == 1 , 'age'] = 1
-    data.loc[ data['Age_20-24'] == 1 , 'age'] = 2
-    data.loc[ data['Age_25-59'] == 1 , 'age'] = 3
-    data.loc[ data['Age_60+'] == 1 , 'age'] = 4
-    data['age'] = data['age'].astype("int64")
-    data.drop(age_columns, axis=1, inplace=True)
-
-    #Gender
-    gender_columns = data.filter(like='Gender_').columns
-    data.loc[ data['Gender_Male'] == 1 , 'gender'] = 1
-    data.loc[ data['Gender_Female'] == 1 , 'gender'] = 2
-    data.loc[ data['Gender_Transgender'] == 1 , 'gender'] = 3
-    data['gender'] = data['gender'].astype("int64")
-    data.drop(gender_columns, axis=1, inplace=True)
 
     ###Data Preprocessing End###
 
@@ -105,20 +89,7 @@ def prediction():
     diarrhea = 1 if request.args.get('diarrhea') == "Yes" else 0
     contact_patient = 1 if request.args.get('contact_patient') == "Yes" else 0 if request.args.get('contact_patient') == "No" else 2
 
-    if(request.args.get('age') == "0 - 9"):
-        age = 0
-    elif(request.args.get('age') == "10 - 19"):
-        age = 1
-    elif(request.args.get('age') == "20 - 24"):
-        age = 2
-    elif(request.args.get('age') == "25 - 59"):
-        age = 3
-    else:
-        age = 4
-
-    gender = 1 if request.args.get('gender') == "Male" else 2 if request.args.get('gender') == "Female" else 3
-
-    args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient, age, gender])
+    args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient])
     model = pickle.load(open("model.pkl", "rb"))
     predict = model.predict([args])
 
