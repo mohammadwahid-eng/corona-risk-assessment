@@ -56,11 +56,11 @@ def model_creation():
 
     #Age
     age_columns = data.filter(like='Age_').columns
-    data.loc[ data['Age_0-9'] == 1 , 'age'] = 1
-    data.loc[ data['Age_10-19'] == 1 , 'age'] = 2
-    data.loc[ data['Age_20-24'] == 1 , 'age'] = 3
-    data.loc[ data['Age_25-59'] == 1 , 'age'] = 4
-    data.loc[ data['Age_60+'] == 1 , 'age'] = 5
+    data.loc[ data['Age_0-9'] == 1 , 'age'] = 0
+    data.loc[ data['Age_10-19'] == 1 , 'age'] = 1
+    data.loc[ data['Age_20-24'] == 1 , 'age'] = 2
+    data.loc[ data['Age_25-59'] == 1 , 'age'] = 3
+    data.loc[ data['Age_60+'] == 1 , 'age'] = 4
     data['age'] = data['age'].astype("int64")
     data.drop(age_columns, axis=1, inplace=True)
 
@@ -105,7 +105,20 @@ def prediction():
     diarrhea = 1 if request.args.get('diarrhea') == "Yes" else 0
     contact_patient = 1 if request.args.get('contact_patient') == "Yes" else 0 if request.args.get('contact_patient') == "No" else 2
 
-    args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient])
+    if(request.args.get('age') == "0 - 9"):
+        age = 0
+    elif(request.args.get('age') == "10 - 19"):
+        age = 1
+    elif(request.args.get('age') == "20 - 24"):
+        age = 2
+    elif(request.args.get('age') == "25 - 59"):
+        age = 3
+    else:
+        age = 4
+
+    gender = 1 if request.args.get('gender') == "Male" else 2 if request.args.get('gender') == "Female" else 3
+
+    args = np.array([fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient, age, gender])
     model = pickle.load(open("model.pkl", "rb"))
     predict = model.predict([args])
 
