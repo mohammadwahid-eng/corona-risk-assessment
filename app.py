@@ -18,7 +18,7 @@ def home():
         },
         "prediction": {
             "url": request.base_url + "prediction",
-            "method": "POST",
+            "method": "GET",
             "parameters": "fever, tiredness, dry_cough, difficulty_in_breathing, sore_throat, pains, nasal_congestion, runny_nose, diarrhea, contact_patient, age, gender"
         },
     }), 200
@@ -89,14 +89,8 @@ def model_creation():
     }), 200
 
 
-@app.route("/prediction", methods=['GET', 'POST'])
+@app.route("/prediction", methods=['GET'])
 def prediction():
-    if request.method == 'POST':
-        return do_prediction()
-    else:
-        return jsonify({"result": "Bad request"}), 400
-
-def do_prediction():
     if(os.path.isfile('model.pkl') == False):
         model_creation()
 
